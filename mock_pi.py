@@ -1,24 +1,29 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Int32
+from std_msgs.msg import String # Changed to String to hold data + time
 import random
+import time
 
-class MockPi(Node):
+class MockPiNode(Node):
     def __init__(self):
         super().__init__('mock_pi_node')
-        # This creates the "Topic" (radio station)
-        self.publisher_ = self.create_publisher(Int32, 'eeg_classification', 10)
-        self.timer = self.create_timer(2.0, self.timer_callback) 
+        self.publisher_ = self.create_publisher(String, 'eeg_classification', 10)
+        self.timer = self.create_timer(2.0, self.timer_callback)
 
     def timer_callback(self):
-        msg = Int32()
-        msg.data = random.choice([0, 1]) 
+        msg = String()
+        command = random.randint(0, 3)
+        timestamp = time.time() # Current time in seconds
+        
+        # Package data as "Command|Timestamp"
+        msg.data = f"{command}|{timestamp}"
+        
         self.publisher_.publish(msg)
-        self.get_logger().info(f'Mock Pi sending signal: {msg.data}')
+        self.get_logger().info(f'Sent: {command} at {timestamp}')
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MockPi()
+    node = MockPiNode()
     rclpy.spin(node)
     rclpy.shutdown()
 
